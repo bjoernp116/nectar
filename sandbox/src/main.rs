@@ -5,7 +5,7 @@ fn main() {
     let mut world: Scene = Scene::new();
     let player: entity::EntityID = new_entity();
     let position: ComponentID = new_component();
-
+    nectar::run();
 
     world.add_entity(player, Archetype::new());
     entity::add_component(player, position, &mut world);
