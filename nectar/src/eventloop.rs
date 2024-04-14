@@ -1,6 +1,6 @@
 use crate::window::State;
 use winit::{
-    dpi::PhysicalSize, event::*, event_loop::{ControlFlow, EventLoop}, window::WindowBuilder
+    event::*, event_loop::{ControlFlow, EventLoop}, window::WindowBuilder
 };
 
 pub fn run() {

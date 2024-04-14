@@ -1,5 +1,4 @@
 use wgpu::util::DeviceExt;
-use wgpu::util::RenderEncoder;
 use winit::window::Window;
 use winit::event::WindowEvent;
 use crate::texture;
@@ -226,7 +225,7 @@ impl State {
         }
     }
 
-    pub fn input(&mut self, event: &WindowEvent) -> bool {
+    pub fn input(&mut self, _event: &WindowEvent) -> bool {
         false
     }
 

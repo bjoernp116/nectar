@@ -1,6 +1,9 @@
-use nectar::scene::Scene;
-use nectar::entity::{self, new_entity};
-use nectar::archetype::{new_component, Archetype, ComponentID};
+use nectar::world::{World, Health};
 fn main() {
-    nectar::eventloop::run();
+    //nectar::eventloop::run();
+    let mut w: World = World::new();
+    let entity = w.new_entity();
+    w.add_component::<Health>(entity, Health(10));
+    w.add_component::<Health>(entity, Health(10));
+    println!("{:?}", w.get_components(entity)[0]);
 }
