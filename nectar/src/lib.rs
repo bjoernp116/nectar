@@ -3,6 +3,7 @@ pub mod logger;
 pub mod window;
 pub mod eventloop;
 pub mod vertex;
+pub mod defaults;
 pub mod texture;
 pub mod world;
 use crate::vertex::Vertex;

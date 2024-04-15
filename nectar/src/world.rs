@@ -1,6 +1,4 @@
-
-#[derive(Debug, Clone)]
-pub struct Health(pub i32);
+use std::any::Any;
 
 type Components = Vec<Box<dyn Component>>;
 pub struct World {
@@ -19,24 +17,41 @@ impl World {
         self.entity_index+=1;
         self.entity_index-1
     }
-    pub fn add_component<T: Component + 'static>(&mut self, entity:usize, component: T){
-        self.entities[entity].push(Box::new(component));
+    pub fn add_component<C: Component + Copy + 'static>
+        (&mut self, entity:usize, component: C) {
+            if self.has_component::<C>(entity) {
+                panic!("Entity already have component!");
+            }
+            self.entities[entity].push(Box::new(component));
     }
+
     pub fn get_components(&self, entity: usize)->Components{
         self.entities[entity]
             .iter()
             .map(|c| c.clone())
             .collect()
     }
+    pub fn has_component<C: Component + Copy + 'static>
+        (&self, entity: usize) -> bool {
+            match self.get_component::<C>(entity) {
+                Some(_) => true,
+                None => false
+            }
+    }
+    pub fn get_component<C: Component + Copy + 'static>
+        (&self, entity: usize) -> Option<C> {
+            for c in self.get_components(entity) {
+                if let Some(&cmp) = c.as_any().downcast_ref::<C>() {
+                    return Some(cmp);
+                }
+            }
+            None
+        }
 
 }
-pub trait Component {
+pub trait Component{
     fn clone_box(&self) -> Box<dyn Component>;
-}
-impl Component for Health{
-    fn clone_box(&self) -> Box<dyn Component> {
-        Box::new(self.clone())
-    }
+    fn as_any(&self) -> &dyn Any;
 }
 impl Clone for Box<dyn Component> {
     fn clone(&self) -> Box<dyn Component> {
@@ -48,4 +63,17 @@ impl std::fmt::Debug for dyn Component {
         write!(f, "Component")
     }
 }
+#[macro_export]
+macro_rules! component {
+    ($t:ty) => {
 
+        impl crate::world::Component for $t {
+            fn clone_box(&self) -> Box<dyn crate::world::Component> {
+                Box::new(self.clone())
+            }
+            fn as_any(&self) -> &dyn std::any::Any {
+                self
+            }
+        }
+    }
+}
