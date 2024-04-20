@@ -1,15 +1,21 @@
+//use winit::event::Event;
 use std::any::Any;
-
+//use std::collections::HashMap;
+use crate::eventloop;
 type Components = Vec<Box<dyn Component>>;
 pub struct World {
     entities: Vec<Components>,
     entity_index: usize,
+    //events: HashMap<Event<usize>, Box<dyn Fn>>,
+    //event_index: usize,
 }
 impl World {
     pub fn new()->World{
         World {
             entities: vec![],
             entity_index: 0,
+            //events: vec![],
+            //event_index: 0,
         }
     }
     pub fn new_entity(&mut self)->usize{
@@ -40,40 +46,44 @@ impl World {
     }
     pub fn get_component<C: Component + Copy + 'static>
         (&self, entity: usize) -> Option<C> {
-            for c in self.get_components(entity) {
-                if let Some(&cmp) = c.as_any().downcast_ref::<C>() {
-                    return Some(cmp);
+        for c in self.get_components(entity) {
+            if let Some(&cmp) = c.as_any().downcast_ref::<C>() {
+                return Some(cmp);
+            }
+        }
+        None
+    }
+    pub fn start(&mut self){
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(eventloop::run());
+    }
+}
+
+    pub trait Component{
+        fn clone_box(&self) -> Box<dyn Component>;
+        fn as_any(&self) -> &dyn Any;
+    }
+    impl Clone for Box<dyn Component> {
+        fn clone(&self) -> Box<dyn Component> {
+            self.clone_box()
+        }
+    }
+    impl std::fmt::Debug for dyn Component {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "Component")
+        }
+    }
+#[macro_export]
+    macro_rules! component {
+        ($t:ty) => {
+
+            impl crate::world::Component for $t {
+                fn clone_box(&self) -> Box<dyn crate::world::Component> {
+                    Box::new(self.clone())
+                }
+                fn as_any(&self) -> &dyn std::any::Any {
+                    self
                 }
             }
-            None
-        }
-
-}
-pub trait Component{
-    fn clone_box(&self) -> Box<dyn Component>;
-    fn as_any(&self) -> &dyn Any;
-}
-impl Clone for Box<dyn Component> {
-    fn clone(&self) -> Box<dyn Component> {
-        self.clone_box()
-    }
-}
-impl std::fmt::Debug for dyn Component {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Component")
-    }
-}
-#[macro_export]
-macro_rules! component {
-    ($t:ty) => {
-
-        impl crate::world::Component for $t {
-            fn clone_box(&self) -> Box<dyn crate::world::Component> {
-                Box::new(self.clone())
-            }
-            fn as_any(&self) -> &dyn std::any::Any {
-                self
-            }
         }
     }
-}

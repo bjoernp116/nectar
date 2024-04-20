@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use wgpu::util::DeviceExt;
 use winit::window::Window;
 use winit::event::WindowEvent;
@@ -5,8 +6,6 @@ use crate::texture;
 use crate::vertex;
 use crate::INDICES;
 use crate::VERTICES;
-
-
 pub struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
@@ -83,7 +82,7 @@ impl State {
 
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Shader"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
+            source: wgpu::ShaderSource::Wgsl(include_str!("assets/shader.wgsl").into()),
         });
 
         let texture_bind_group_layout =
@@ -159,7 +158,7 @@ impl State {
             });
         surface.configure(&device, &config);
 
-        let diffuse_bytes = include_bytes!("nectar.jpg");
+        let diffuse_bytes = include_bytes!("assets/nectar.jpg");
         let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "nectar.jpg").unwrap();
 
         let diffuse_bind_group = device.create_bind_group(
