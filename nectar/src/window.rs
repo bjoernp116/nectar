@@ -1,18 +1,30 @@
-#![allow(dead_code)]
+#![allow(dead_code, unused_imports)]
 use wgpu::util::DeviceExt;
+use anyhow::Result;
+use winit::{
+    dpi::PhysicalSize, event::*, event_loop::{ControlFlow, EventLoop}, keyboard::*, window::WindowBuilder
+};
+use winit::event;
+use winit::event_loop;
+//use wgpu::Limits;
 use winit::window::Window;
 use winit::event::WindowEvent;
 use crate::texture;
 use crate::vertex;
 use crate::INDICES;
 use crate::VERTICES;
-pub struct State {
-    surface: wgpu::Surface,
+use std::sync::Arc;
+
+
+pub struct State<'a> {
+    surface: wgpu::Surface<'a>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     pub size: winit::dpi::PhysicalSize<u32>,
-    window: Window,
+
+    window: Arc<Window>,
+
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     pub vertices: u32,
@@ -24,9 +36,10 @@ pub struct State {
 }
 
 
-impl State {
+impl<'a> State<'a> {
     // Create some of the wgpu types requires async code
-    pub async fn new(window: Window) -> Self {
+    pub async fn new(window: Window) -> State<'a> {
+        let window = Arc::new(window);
         let size = window.inner_size();
 
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
@@ -34,8 +47,7 @@ impl State {
             ..Default::default()
         });
 
-
-        let surface = unsafe { instance.create_surface(&window) }.unwrap();
+        let surface = unsafe {instance.create_surface(Arc::clone(&window))}.unwrap();
 
         let adapter = instance.request_adapter({
             &wgpu::RequestAdapterOptions {
@@ -48,14 +60,9 @@ impl State {
         let (device, queue) = adapter.request_device(
             &wgpu::DeviceDescriptor {
                 // Add Features here:
-                features: wgpu::Features::empty(),
+                required_features: wgpu::Features::empty(),
 
-
-                limits: if cfg!(target_arch = "wasm32") {
-                    wgpu::Limits::downlevel_webgl2_defaults()
-                } else {
-                    wgpu::Limits::default()
-                },
+                required_limits: wgpu::Limits::downlevel_webgl2_defaults(),
                 label: None,
             },
             None,
@@ -75,6 +82,7 @@ impl State {
             width: size.width,
             height: size.height,
             present_mode: surface_caps.present_modes[0],
+            desired_maximum_frame_latency: 2,
             alpha_mode: surface_caps.alpha_modes[0],
             view_formats: vec![],
         };
@@ -194,9 +202,9 @@ impl State {
             }
         );
 
-        Self {
-            window,
+        State {
             surface,
+            window,
             device,
             queue,
             config,
@@ -231,6 +239,7 @@ impl State {
     pub fn update(&mut self) {
 
     }
+
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;

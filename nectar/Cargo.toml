@@ -7,10 +7,10 @@ edition = "2021"
 
 [dependencies]
 uuid = {version = "1.8.0", features = ["v4", "fast-rng", "macro-diagnostics"]}
-winit = "0.28"
+winit = "0.29.15"
 env_logger = "0.10"
 log = "0.4"
-wgpu = "0.18"
+wgpu = "0.19.4"
 bytemuck = { version = "1.12", features = [ "derive" ] }
 image = { version = "0.24", default-features = false, features = [ "png", "jpeg" ] }
 anyhow = "1.0.81"

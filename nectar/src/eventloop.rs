@@ -1,58 +1,54 @@
-use winit::{
-    event::*, event_loop::{ControlFlow, EventLoop}, window::WindowBuilder
-};
+use anyhow::Result;
+use winit::{event::*, keyboard::*, window::WindowBuilder, event_loop::EventLoop};
 use crate::window::State;
-//#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub async fn run() {
+use std::sync::Arc;
+
+
+pub async fn run(event_loop: EventLoop<()>) -> Result<usize>{
     env_logger::init();
-    print!("event");
-    let event_loop = EventLoop::new();
+
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     let mut state = State::new(window).await; // Inits Window!
 
-    event_loop.run(move |event, _, control_flow| { // Starts Eventloop
+    event_loop.run(move |event, window_target| { // Starts Eventloop
         match event {
             Event::WindowEvent {
                 ref event,
                 window_id,
             } if window_id == state.window().id() => if !state.input(event) { // UPDATED!
                 match event {
+                    /*WindowEvent::KeyboardInput {
+                        event: ref keyboard_input,
+                        ..
+                    } => {},*/
                     WindowEvent::CloseRequested
                         | WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
+                            event:
+                                KeyEvent {
                                     state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
+                                    physical_key: PhysicalKey::Code(KeyCode::Escape),
                                     ..
                                 },
                                 ..
-                        } => {
-                            println!("EXITED");
-                            *control_flow = ControlFlow::Exit
-                        },
+                        } => window_target.exit(),
                     WindowEvent::Resized(physical_size) => {
                         state.resize(*physical_size);
-                    }
-                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        state.resize(**new_inner_size);
+                    },
+                    WindowEvent::RedrawRequested => {
+                        state.update();
+                        match state.render() {
+                            Ok(_) => {},
+                            Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
+                            Err(wgpu::SurfaceError::OutOfMemory) => window_target.exit(),
+                            Err(e) => eprintln!("{:?}", e),
+                        }
                     },
                     _ => {}
                 }
             },
-            Event::RedrawRequested(window_id) if window_id == state.window().id() => {
-                state.update();
-                match state.render() {
-                    Ok(_) => {},
-                    Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
-                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    Err(e) => eprintln!("{:?}", e),
-                }
-            },
-            Event::MainEventsCleared => {
-                state.window().request_redraw();
-            },
             _ => {}
         }
-    })
+    });
+    Ok(0)
 }

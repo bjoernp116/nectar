@@ -7,4 +7,5 @@ fn main() {
     w.add_component::<Transform3D>(entity, Transform3D::new());
     //w.add_component::<Renderer>(entity, Renderer::new());
     let mut _transform = w.get_component::<Transform3D>(entity).unwrap();
+    w.start();
 }
