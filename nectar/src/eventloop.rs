@@ -1,10 +1,10 @@
 use anyhow::Result;
 use winit::{event::*, keyboard::*, window::WindowBuilder, event_loop::EventLoop};
 use crate::window::State;
-use std::sync::Arc;
+use crate::events::*;
+use crate::world::World;
 
-
-pub async fn run(event_loop: EventLoop<()>) -> Result<usize>{
+pub async fn run(event_loop: EventLoop<()>, world: &World) -> Result<usize>{
     env_logger::init();
 
     let window = WindowBuilder::new().build(&event_loop).unwrap();
@@ -12,8 +12,10 @@ pub async fn run(event_loop: EventLoop<()>) -> Result<usize>{
     let mut state = State::new(window).await; // Inits Window!
 
     event_loop.run(move |event, window_target| { // Starts Eventloop
+        world.event_handler.call_events(EventType::Update);
+
         match event {
-            Event::WindowEvent {
+            winit::event::Event::WindowEvent {
                 ref event,
                 window_id,
             } if window_id == state.window().id() => if !state.input(event) { // UPDATED!

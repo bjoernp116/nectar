@@ -6,6 +6,6 @@ pub enum EventType {
 
 
 pub struct Event {
-    event_type: EventType,
-    func: Box<dyn Fn()>,
+    pub event_type: EventType,
+    pub func: Box<dyn Fn()>,
 }

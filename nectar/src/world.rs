@@ -1,20 +1,19 @@
 use std::any::Any;
 use winit::event_loop::EventLoop;
-use std::collections::HashMap;
 use crate::eventloop;
-use crate::events::EventType;
+use crate::events::Handler;
 type Components = Vec<Box<dyn Component>>;
 pub struct World {
     entities: Vec<Components>,
     entity_index: usize,
-    events: HashMap<EventType, Vec<fn()>>,
+    pub event_handler: Handler,
 }
 impl World {
     pub fn new()->World{
         World {
             entities: vec![],
             entity_index: 0,
-            events: HashMap::new(),
+            event_handler: Handler::new()
         }
     }
     pub fn new_entity(&mut self)->usize{
@@ -57,7 +56,7 @@ impl World {
 
         let event_loop = EventLoop::new().unwrap();
 
-        match rt.block_on(eventloop::run(event_loop)) {
+        match rt.block_on(eventloop::run(event_loop, &self)) {
             Err(e) => panic!("{}", e),
             _ => {},
         }

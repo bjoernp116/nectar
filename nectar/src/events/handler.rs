@@ -1,23 +1,26 @@
-use crate::event::*;
+use crate::events::*;
 
 pub struct Handler {
     events: Vec<Event>
 }
 
 impl Handler {
-    fn add_event<F>(&mut self, et: EventType, func: F)
+    pub fn new() -> Handler {
+        Handler { events: vec![] }
+    }
+    pub fn add_event<F: 'static>(&mut self, et: EventType, func: F)
     where F: Fn(){
-        events.push(
+        self.events.push(
             Event {
                 event_type: et,
-                func: func,
+                func: Box::new(func),
             }
         );
     }
-    fn call_events(&self, et: EventType){
-        for e in self.events {
-            if matches!(e.event_type, et) {
-                e.func();
+    pub fn call_events(&self, et: EventType){
+        for e in &self.events {
+            if matches!(&e.event_type, et) {
+                (e.func)();
             }
         }
     }
