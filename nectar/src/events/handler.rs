@@ -17,7 +17,7 @@ impl Handler {
             }
         );
     }
-    pub fn call_events(&self, et: EventType){
+    pub fn call(&self, et: EventType){
         for e in &self.events {
             if matches!(&e.event_type, et) {
                 (e.func)();

@@ -11,6 +11,6 @@ fn main() {
     fn p(){
         print!("Hello World");
     }
-    w.event_handler.add_event(EventType::Update, p);
+    w.event_handler.add_event(EventType::KeyInput(KeyCode::Escape), p);
     w.start();
 }

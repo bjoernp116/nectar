@@ -1,4 +1,5 @@
 use anyhow::Result;
+use winit::keyboard;
 use winit::{event::*, keyboard::*, window::WindowBuilder, event_loop::EventLoop};
 use crate::window::State;
 use crate::events::*;
@@ -12,7 +13,7 @@ pub async fn run(event_loop: EventLoop<()>, world: &World) -> Result<usize>{
     let mut state = State::new(window).await; // Inits Window!
 
     event_loop.run(move |event, window_target| { // Starts Eventloop
-        world.event_handler.call_events(EventType::Update);
+        world.event_handler.call(EventType::Update);
 
         match event {
             winit::event::Event::WindowEvent {
@@ -20,10 +21,16 @@ pub async fn run(event_loop: EventLoop<()>, world: &World) -> Result<usize>{
                 window_id,
             } if window_id == state.window().id() => if !state.input(event) { // UPDATED!
                 match event {
-                    /*WindowEvent::KeyboardInput {
-                        event: ref keyboard_input,
+                    WindowEvent::KeyboardInput {
+                        event: KeyEvent {
+                            state: ElementState::Pressed,
+                            physical_key: PhysicalKey::Code(ref code),
+                            ..
+                        },
                         ..
-                    } => {},*/
+                    } => {
+                        world.event_handler.call(EventType::KeyInput(code.clone()));
+                    },
                     WindowEvent::CloseRequested
                         | WindowEvent::KeyboardInput {
                             event:

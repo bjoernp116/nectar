@@ -1,6 +1,6 @@
 pub enum EventType {
     Update,
-    KeyInput(winit::event::KeyEvent),
+    KeyInput(winit::keyboard::KeyCode),
     Custom(String),
 }
 
